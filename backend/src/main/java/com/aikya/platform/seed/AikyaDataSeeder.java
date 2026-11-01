@@ -302,3 +302,4 @@ public class AikyaDataSeeder implements ApplicationRunner {
         );
     }
 }
+
