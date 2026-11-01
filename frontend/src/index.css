@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Plus Jakarta Sans', 'Noto Sans Telugu', 'Mandali', system-ui, -apple-system, sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  /* Ensure Telugu script vowel/consonant ligatures (ఒత్తులు / గుణింతాలు) never clip vertically */
+  :lang(te),
+  .font-telugu,
+  [data-locale="te"] {
+    font-family: 'Noto Sans Telugu', 'Mandali', 'Plus Jakarta Sans', sans-serif;
+    line-height: 1.75;
+    letter-spacing: 0.01em;
+  }
+
+  :lang(te) h1,
+  :lang(te) h2,
+  :lang(te) h3,
+  :lang(te) h4,
+  [data-locale="te"] h1,
+  [data-locale="te"] h2,
+  [data-locale="te"] h3,
+  [data-locale="te"] h4 {
+    line-height: 1.5;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/85 backdrop-blur-md border border-slate-200/80 shadow-soft;
+  }
+
+  .glass-header {
+    @apply bg-white/90 backdrop-blur-lg border-b border-slate-200/80;
+  }
+
+  .indian-gradient-border {
+    background: linear-gradient(90deg, #fe7c0f 0%, #4f46e5 50%, #10b981 100%);
+  }
+
+  .saffron-gradient {
+    background: linear-gradient(135deg, #fe7c0f 0%, #ef6005 100%);
+  }
+
+  .indigo-gradient {
+    background: linear-gradient(135deg, #312e81 0%, #4f46e5 100%);
+  }
+}
+
+/* Custom sleek scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

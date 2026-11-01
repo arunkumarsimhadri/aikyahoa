@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aikya
+  labels:
+    app.kubernetes.io/name: aikya
+---
+# File-based storage PVC using the cluster's existing UNAS NFS StorageClass (nfs.csi.k8s.io)
+# Used for multi-file receipt, invoice, and transaction proof attachments across pods
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: aikya-receipts-nfs-pvc
+  namespace: aikya
+  labels:
+    app.kubernetes.io/name: aikya
+    app.kubernetes.io/component: file-storage
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: unas-nfs
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aikya-config
+  namespace: aikya
+data:
+  DB_URL: "jdbc:postgresql://pg-rw.databases.svc.cluster.local:5432/aikya_db"
+  DB_EXTERNAL_URL: "jdbc:postgresql://192.168.10.80:5432/aikya_db"
+  DB_USERNAME: "aikya_app_user"
+  AIKYA_STORAGE_PROVIDER: "MINIO_S3"
+  AIKYA_MINIO_ENDPOINT: "http://minio.storage.svc.cluster.local:80"
+  AIKYA_MINIO_EXTERNAL_ENDPOINT: "http://192.168.10.83"
+  AIKYA_MINIO_BUCKET: "aikya-storage"
+  AIKYA_STORAGE_DIR: "/var/lib/aikya/storage"
+  AIKYA_PRIMARY_ASSOCIATION: "Elite Towers"
+  AIKYA_PRIMARY_CITY: "Ongole"
+  AIKYA_PRIMARY_STATE: "Andhra Pradesh"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aikya-backend
+  namespace: aikya
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: aikya-backend
+  template:
+    metadata:
+      labels:
+        app: aikya-backend
+    spec:
+      containers:
+        - name: aikya-backend
+          image: aikya-backend:1.0.0
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: aikya-config
+          volumeMounts:
+            - name: receipts-storage
+              mountPath: /var/lib/aikya/storage
+      volumes:
+        - name: receipts-storage
+          persistentVolumeClaim:
+            claimName: aikya-receipts-nfs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aikya-backend
+  namespace: aikya
+spec:
+  selector:
+    app: aikya-backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP
+

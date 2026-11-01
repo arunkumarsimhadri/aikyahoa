@@ -1,0 +1,24 @@
+# macOS
+.DS_Store
+
+# IDE & Agent tooling
+.idea/
+*.iml
+.vscode/
+.agy/
+
+# Backend (Maven / Java)
+backend/target/
+*.log
+*.class
+*.jar
+*.war
+
+# Frontend (Node / Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Local temporary uploads
+/tmp/
+uploads/

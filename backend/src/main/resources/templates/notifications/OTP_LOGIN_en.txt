@@ -1,0 +1,1 @@
+[Aikya RWA] Your login OTP is [[${otpCode}]]. Valid for 5 minutes. Do not share with anyone.

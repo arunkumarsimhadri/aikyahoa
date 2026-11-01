@@ -1,0 +1,1 @@
+[Aikya RWA] Maintenance Invoice [[${invoiceNumber}]] for Flat [[${unitNumber}]] of Rs.[[${amount}]] is generated. Due date: [[${dueDate}]].

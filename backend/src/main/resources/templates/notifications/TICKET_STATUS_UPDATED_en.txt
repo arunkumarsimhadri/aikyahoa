@@ -1,0 +1,1 @@
+[Aikya RWA] Helpdesk Ticket [[${ticketNumber}]] ([[${category}]]) status updated to [[${status}]]. Technician: [[${technician}]]

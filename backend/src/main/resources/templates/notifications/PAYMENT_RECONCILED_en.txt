@@ -1,0 +1,1 @@
+[Aikya RWA] Your payment of Rs.[[${amount}]] (Ref: [[${referenceNumber}]]) for Flat [[${unitNumber}]] has been [[${decision}]] by Treasurer. Notes: [[${auditNotes}]]

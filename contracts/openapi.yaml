@@ -1,0 +1,454 @@
+openapi: 3.1.0
+info:
+  title: Aikya (ఐక్య) - Apartment & Community Management Platform API
+  version: 1.0.0
+  description: |
+    Multi-tenant REST API for Indian Apartment Owner Associations (HOAs / RWAs).
+    Tagline: "Community Living, Unified / మన సంఘం, మన ఐక్యత"
+servers:
+  - url: http://localhost:8080
+    description: Local Development Server
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    TenantHeader:
+      name: X-Tenant-ID
+      in: header
+      required: false
+      schema:
+        type: string
+        example: aikya_assoc_1
+      description: PostgreSQL schema identifier for the active association tenant.
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+    OtpSendRequest:
+      type: object
+      required: [phoneNumber]
+      properties:
+        phoneNumber:
+          type: string
+          example: "+919848012345"
+    OtpSendResponse:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+        expiresInSeconds:
+          type: integer
+        mockOtpCode:
+          type: string
+          description: Returned in dev/mock mode for zero-interruption testing.
+    OtpVerifyRequest:
+      type: object
+      required: [phoneNumber, otpCode]
+      properties:
+        phoneNumber:
+          type: string
+          example: "+919848012345"
+        otpCode:
+          type: string
+          example: "123456"
+        associationId:
+          type: integer
+          format: int64
+    AuthTokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+          example: Bearer
+        user:
+          $ref: '#/components/schemas/UserDto'
+        activeAssociation:
+          $ref: '#/components/schemas/AssociationMembershipDto'
+        memberships:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssociationMembershipDto'
+    UserDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        phoneNumber:
+          type: string
+        fullName:
+          type: string
+        email:
+          type: string
+        preferredLocale:
+          type: string
+          enum: [en, te]
+        active:
+          type: boolean
+    AssociationMembershipDto:
+      type: object
+      properties:
+        membershipId:
+          type: integer
+          format: int64
+        associationId:
+          type: integer
+          format: int64
+        associationName:
+          type: string
+        associationCode:
+          type: string
+        schemaName:
+          type: string
+        role:
+          type: string
+          enum: [SUPER_ADMIN, PRESIDENT, SECRETARY, TREASURER, COMMITTEE_MEMBER, OWNER, TENANT, SECURITY_STAFF, TECHNICIAN]
+        unitNumber:
+          type: string
+        blockName:
+          type: string
+    AssociationCreateRequest:
+      type: object
+      required: [name, code, address, city, state, pincode, billingType]
+      properties:
+        name:
+          type: string
+        code:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        pincode:
+          type: string
+        billingType:
+          type: string
+          enum: [AREA_BASED, FLAT_RATE, HYBRID]
+        ratePerSqft:
+          type: number
+        flatMaintenanceAmount:
+          type: number
+        sinkingFundAmount:
+          type: number
+        waterChargePerUnit:
+          type: number
+    BillingRunRequest:
+      type: object
+      required: [billingMonth, billingYear, dueDate]
+      properties:
+        billingMonth:
+          type: integer
+          minimum: 1
+          maximum: 12
+        billingYear:
+          type: integer
+        dueDate:
+          type: string
+          format: date
+        notes:
+          type: string
+    InvoiceDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        invoiceNumber:
+          type: string
+        unitId:
+          type: integer
+          format: int64
+        unitNumber:
+          type: string
+        blockName:
+          type: string
+        areaSqft:
+          type: integer
+        billingMonth:
+          type: integer
+        billingYear:
+          type: integer
+        dueDate:
+          type: string
+          format: date
+        maintenanceCharge:
+          type: number
+        sinkingFundCharge:
+          type: number
+        waterCharge:
+          type: number
+        otherCharges:
+          type: number
+        lateFee:
+          type: number
+        totalAmount:
+          type: number
+        paidAmount:
+          type: number
+        status:
+          type: string
+          enum: [PENDING, PARTIALLY_PAID, PAID, OVERDUE]
+    OnlineOrderRequest:
+      type: object
+      required: [invoiceId, gateway]
+      properties:
+        invoiceId:
+          type: integer
+          format: int64
+        gateway:
+          type: string
+          enum: [RAZORPAY, CASHFREE]
+    OfflinePaymentSubmitRequest:
+      type: object
+      required: [invoiceId, amount, paymentMethod, referenceNumber]
+      properties:
+        invoiceId:
+          type: integer
+          format: int64
+        amount:
+          type: number
+        paymentMethod:
+          type: string
+          enum: [CHEQUE, NEFT, IMPS, UPI_MANUAL]
+        referenceNumber:
+          type: string
+        proofFileUrl:
+          type: string
+        notes:
+          type: string
+    PaymentReconcileRequest:
+      type: object
+      required: [decision, auditNotes]
+      properties:
+        decision:
+          type: string
+          enum: [VERIFIED, REJECTED]
+        auditNotes:
+          type: string
+    TicketCreateRequest:
+      type: object
+      required: [category, priority, title, description]
+      properties:
+        unitId:
+          type: integer
+          format: int64
+        category:
+          type: string
+          enum: [PLUMBING, ELECTRICAL, ELEVATOR, SECURITY, HOUSEKEEPING, CARPENTRY, WATER_SUPPLY, OTHER]
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        title:
+          type: string
+        description:
+          type: string
+        attachmentUrl:
+          type: string
+    TicketStatusUpdateRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [OPEN, IN_PROGRESS, RESOLVED, CLOSED]
+        assignedTechnicianName:
+          type: string
+        assignedTechnicianPhone:
+          type: string
+        resolutionNotes:
+          type: string
+    AmenityBookingCreateRequest:
+      type: object
+      required: [amenityId, bookingDate, startTime, endTime]
+      properties:
+        amenityId:
+          type: integer
+          format: int64
+        unitId:
+          type: integer
+          format: int64
+        bookingDate:
+          type: string
+          format: date
+        startTime:
+          type: string
+          example: "18:00"
+        endTime:
+          type: string
+          example: "20:00"
+        purpose:
+          type: string
+        guestCount:
+          type: integer
+    PollCreateRequest:
+      type: object
+      required: [title, isSecret, ownerOnly, endsAt, options]
+      properties:
+        title:
+          type: string
+        titleTe:
+          type: string
+        description:
+          type: string
+        descriptionTe:
+          type: string
+        isSecret:
+          type: boolean
+        ownerOnly:
+          type: boolean
+        endsAt:
+          type: string
+          format: date-time
+        options:
+          type: array
+          items:
+            type: object
+            properties:
+              text:
+                type: string
+              textTe:
+                type: string
+    PollVoteRequest:
+      type: object
+      required: [optionId]
+      properties:
+        optionId:
+          type: integer
+          format: int64
+        unitId:
+          type: integer
+          format: int64
+paths:
+  /api/v1/auth/otp/send:
+    post:
+      summary: Send passwordless OTP to mobile number
+      tags: [Authentication]
+  /api/v1/auth/otp/verify:
+    post:
+      summary: Verify OTP and issue stateless JWT with tenant memberships
+      tags: [Authentication]
+  /api/v1/auth/me:
+    get:
+      summary: Get current authenticated user and tenant context
+      tags: [Authentication]
+  /api/v1/users/locale:
+    patch:
+      summary: Switch user preferred locale (en / te)
+      tags: [Users]
+  /api/v1/associations:
+    get:
+      summary: List all onboarded associations
+      tags: [Tenants]
+    post:
+      summary: Onboard new association and provision tenant schema (aikya_assoc_<id>)
+      tags: [Tenants]
+  /api/v1/dashboard/summary:
+    get:
+      summary: Aggregated resident & association dashboard metrics
+      tags: [Dashboard]
+  /api/v1/billing/invoices:
+    get:
+      summary: List invoices (filtered by unit for residents or all for Treasurer/MC)
+      tags: [Billing]
+  /api/v1/billing/runs:
+    post:
+      summary: Trigger monthly maintenance billing run across all units (TREASURER / PRESIDENT)
+      tags: [Billing]
+  /api/v1/payments:
+    get:
+      summary: List payments (including unreconciled offline submissions)
+      tags: [Payments]
+  /api/v1/payments/online/order:
+    post:
+      summary: Create mock Razorpay/Cashfree online payment order
+      tags: [Payments]
+  /api/v1/payments/online/webhook:
+    post:
+      summary: Process online payment gateway webhook and mark invoice paid
+      tags: [Payments]
+  /api/v1/payments/offline:
+    post:
+      summary: Submit offline payment (Cheque/NEFT/UPI ref) for Treasurer reconciliation
+      tags: [Payments]
+  /api/v1/payments/{paymentId}/reconcile:
+    post:
+      summary: Verify or reject offline payment with audit notes (TREASURER / PRESIDENT)
+      tags: [Payments]
+  /api/v1/tickets:
+    get:
+      summary: List helpdesk tickets with SLA status
+      tags: [Helpdesk]
+    post:
+      summary: Raise new helpdesk complaint ticket
+      tags: [Helpdesk]
+  /api/v1/tickets/{ticketId}/status:
+    patch:
+      summary: Transition ticket lifecycle (OPEN -> IN_PROGRESS -> RESOLVED -> CLOSED) and assign technician
+      tags: [Helpdesk]
+  /api/v1/amenities:
+    get:
+      summary: List association amenities (Clubhouse, Party Hall, Swimming Pool, Tennis Court)
+      tags: [Amenities]
+  /api/v1/amenities/{amenityId}/slots:
+    get:
+      summary: Get slot availability and existing bookings for a date
+      tags: [Amenities]
+  /api/v1/amenities/bookings:
+    get:
+      summary: List amenity bookings
+      tags: [Amenities]
+    post:
+      summary: Book an amenity slot with automatic conflict resolution
+      tags: [Amenities]
+  /api/v1/governance/polls:
+    get:
+      summary: List polls with tallies and unit voting status
+      tags: [Governance]
+    post:
+      summary: Create new open or secret poll
+      tags: [Governance]
+  /api/v1/governance/polls/{pollId}/vote:
+    post:
+      summary: Cast 1-vote-per-unit poll vote (strictly OWNER role when ownerOnly=true)
+      tags: [Governance]
+  /api/v1/governance/documents:
+    get:
+      summary: List AGM & society documents archive
+      tags: [Governance]
+    post:
+      summary: Upload new AGM/society document metadata
+      tags: [Governance]
+  /api/v1/notices:
+    get:
+      summary: List bilingual community notices
+      tags: [Notices]
+    post:
+      summary: Publish new community notice
+      tags: [Notices]
+  /api/v1/notifications/logs:
+    get:
+      summary: List localized SMS/WhatsApp notification dispatches
+      tags: [Notifications]
+  /api/v1/notifications/preview:
+    post:
+      summary: Preview rendered English/Telugu notification template
+      tags: [Notifications]
+

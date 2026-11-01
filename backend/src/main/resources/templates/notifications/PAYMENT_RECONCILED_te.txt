@@ -1,0 +1,1 @@
+[ఐక్య RWA] ఫ్లాట్ [[${unitNumber}]] కొరకు మీరు చెల్లించిన రూ.[[${amount}]] (Ref: [[${referenceNumber}]]) కోశాధికారిచే [[${decision}]] చేయబడింది. వివరాలు: [[${auditNotes}]]
